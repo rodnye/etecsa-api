@@ -31,7 +31,6 @@ export const loadVirtualDOM = async () => {
     resources: 'usable',
     url: 'https://www.tienda.etecsa.cu/visitantes/home',
     runScripts: 'dangerously',
-    pretendToBeVisual: true,
     virtualConsole,
     beforeParse: beforeParseForReact,
   });
