@@ -1,1 +1,0 @@
-export const SERVER_API = 'https://www.tienda.etecsa.cu';
