@@ -21,7 +21,7 @@ export const loginAuthApi = async (credentials: AuthCredentials): Promise<AuthRe
 
     if (response.status === 200) {
       const cookies = response.headers['set-cookie'];
-      console.log(response);
+      // FIXME: check this, this not get the cookies
       const csrfToken = cookies?.find((c) => c.startsWith('csrftoken='))!;
       const sessionId = cookies?.find((c) => c.startsWith('sessionid='))!;
 
