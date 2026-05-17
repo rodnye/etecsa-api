@@ -19,7 +19,7 @@ export const loadVirtualDOM = async () => {
   const server = await new Promise<Server>((resolve) => {
     const app = express();
 
-    app.use(express.static(path.join(LIB_FOLDER, 'raw')));
+    app.use(express.static(path.join(LIB_FOLDER, '../raw')));
 
     const server = app.listen(3256, () => {
       resolve(server);
@@ -27,7 +27,7 @@ export const loadVirtualDOM = async () => {
   });
 
   // load virtual dom
-  const dom = await JSDOM.fromFile(path.join(LIB_FOLDER, 'raw/index.html'), {
+  const dom = await JSDOM.fromFile(path.join(LIB_FOLDER, '../raw/index.html'), {
     resources: 'usable',
     url: 'https://www.tienda.etecsa.cu/visitantes/home',
     runScripts: 'dangerously',
