@@ -1,4 +1,4 @@
-import { requestEtecsaApi } from '../../core/api';
+import { requestEtecsaApi, ApiResult } from '../../core/api';
 import {
   MunicipalitiesResponse,
   NautaInterruptionsResponse,
@@ -7,50 +7,33 @@ import {
 } from './types';
 
 export const nomenclatorsApi = {
-  loadNautaInterruptions: async () =>
-    (
-      await requestEtecsaApi<NautaInterruptionsResponse>(
-        '/nomencladores/nom_interr_nauta_api',
-        {
-          method: 'get',
-        },
-      )
-    ).data,
+  loadNautaInterruptions: (): Promise<ApiResult<NautaInterruptionsResponse>> =>
+    requestEtecsaApi<NautaInterruptionsResponse>(
+      '/nomencladores/nom_interr_nauta_api',
+      { method: 'get' },
+    ),
 
-  loadStbInterruptions: async () =>
-    (
-      await requestEtecsaApi<StbInterruption>(
-        '/nomencladores/nom_interr_stb_api',
-        {
-          method: 'get',
-        },
-      )
-    ).data,
+  loadStbInterruptions: (): Promise<ApiResult<StbInterruption>> =>
+    requestEtecsaApi<StbInterruption>('/nomencladores/nom_interr_stb_api', {
+      method: 'get',
+    }),
 
-  /**
-   * @param provinceId - de 1 a 16
-   */
-  loadMunicipalities: async (provinceId: number) =>
-    (
-      await requestEtecsaApi<MunicipalitiesResponse>(
-        '/nomencladores/nom_municipios_api',
-        {
-          method: 'post',
-          data: {
-            operacion: 'get_municipios',
-            id: provinceId,
-          },
+  loadMunicipalities: (
+    provinceId: number,
+  ): Promise<ApiResult<MunicipalitiesResponse>> =>
+    requestEtecsaApi<MunicipalitiesResponse>(
+      '/nomencladores/nom_municipios_api',
+      {
+        method: 'post',
+        data: {
+          operacion: 'get_municipios',
+          id: provinceId,
         },
-      )
-    ).data,
+      },
+    ),
 
-  loadProvinces: async () =>
-    (
-      await requestEtecsaApi<ProvincesResponse>(
-        '/nomencladores/nom_provincias_api',
-        {
-          method: 'get',
-        },
-      )
-    ).data,
+  loadProvinces: (): Promise<ApiResult<ProvincesResponse>> =>
+    requestEtecsaApi<ProvincesResponse>('/nomencladores/nom_provincias_api', {
+      method: 'get',
+    }),
 };
