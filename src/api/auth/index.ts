@@ -11,12 +11,9 @@ import {
  */
 export const authApi = {
   login: loginAuthApi,
-
+  logout: profileApi.logout,
   checkUser: checkUserExistsAuthApi,
   resetPassword: resetPasswordAuthApi,
   verifyCode: verifyCodeAuthApi,
   generateCode: generateCodeAuthApi,
-
-  // es un servicio de profile_api
-  logout: profileApi.logout,
 };
