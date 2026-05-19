@@ -3,7 +3,7 @@ import express from 'express';
 import path from 'path';
 import { Server } from 'http';
 import { setTimeout } from 'timers/promises';
-import { LIB_FOLDER } from '../consts';
+import { LIB_FOLDER, OFFLINE_SERVER_PORT } from '../consts';
 
 /**
  *
@@ -21,7 +21,7 @@ export const loadVirtualDOM = async () => {
 
     app.use(express.static(path.join(LIB_FOLDER, '../raw')));
 
-    const server = app.listen(3256, () => {
+    const server = app.listen(OFFLINE_SERVER_PORT, () => {
       resolve(server);
     });
   });
