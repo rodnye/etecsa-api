@@ -1,394 +1,213 @@
-import { requestEtecsaApi } from '../../core/api';
-import { ApiResponse } from '../../core/types';
+import { requestEtecsaApi, ApiResult } from '../../core/api';
 import {
   CashiersResponse,
   EditUserRequest,
-  EditUserResponse,
   GetLandlineServicesResponse,
   GetMobileServicesResponse,
   GetOwnCardResponse,
   NautaHogarResponse,
   ProfileData,
-  ProfileResponse,
 } from './types';
 
-/**
- * API para operaciones de perfil de usuario
- * Endpoint: /usuarios/perfil_api
- */
+type ProfileRequestOptions<T> = {
+  operation?: string;
+  method?: 'get' | 'post' | 'put';
+  data?: Record<string, unknown>;
+};
+
+async function profileRequest<T>(
+  options: ProfileRequestOptions<T>,
+): Promise<ApiResult<T>> {
+  const result = await requestEtecsaApi<T>('/usuarios/perfil_api', {
+    method: options.method || 'post',
+    data:
+      options.operation !== undefined
+        ? { operacion: options.operation, ...options.data }
+        : options.data,
+  });
+
+  if (!result.ok) {
+    return result;
+  }
+
+  const { status } = result;
+
+  // Common session expired / unavailable
+  if (status === 403) {
+    return {
+      ok: false,
+      error: 'Su sesión expiró',
+      status: 403,
+      details: { code: 'session_expired' },
+    };
+  }
+  if (status === 423) {
+    return {
+      ok: false,
+      error: 'El servicio no está disponible',
+      status: 423,
+      details: { code: 'service_unavailable' },
+    };
+  }
+
+  return result;
+}
+
 export const profileApi = {
-  /**
-   * Obtener lista de IDs de cajeros
-   */
-  getCashiersIds: async (): Promise<
-    ApiResponse & { data?: CashiersResponse }
-  > => {
-    try {
-      const response = await requestEtecsaApi<CashiersResponse, any>(
-        '/usuarios/perfil_api',
-        {
-          method: 'post',
-          data: {
-            operacion: 'get_id_cajeros',
-          },
-        },
-      );
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
-      if (response.status === 200) {
-        return {
-          success: true,
-          status: 200,
-          data: response.data,
-        };
-      }
-
-      return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Get id cajeros error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
-      };
-    }
-  },
+  getMobileServices: (): Promise<ApiResult<GetMobileServicesResponse>> =>
+    profileRequest<GetMobileServicesResponse>({
+      operation: 'get_servicios_moviles',
+    }),
 
   /**
-   * Obtener datos de la tarjeta propia del usuario
-   */
-  getOwnCard: async (): Promise<
-    ApiResponse & { data?: GetOwnCardResponse }
-  > => {
-    try {
-      const response = await requestEtecsaApi<GetOwnCardResponse, any>(
-        '/usuarios/perfil_api',
-        {
-          method: 'post',
-          data: {
-            operacion: 'get_tarjeta_propia',
-          },
-        },
-      );
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
-      if (response.status === 200) {
-        return {
-          success: true,
-          status: 200,
-          data: response.data,
-        };
-      }
-
-      return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Get tarjeta propia error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
-      };
-    }
-  },
-
-  /**
-   * Obtener lista de servicios fijos asociados al usuario
-   */
-  getLandlineServices: async (): Promise<
-    ApiResponse & { data?: GetLandlineServicesResponse }
-  > => {
-    try {
-      const response = await requestEtecsaApi<GetLandlineServicesResponse, any>(
-        '/usuarios/perfil_api',
-        {
-          method: 'post',
-          data: {
-            operacion: 'get_servicios_fijos',
-          },
-        },
-      );
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
-      if (response.status === 200) {
-        return {
-          success: true,
-          status: 200,
-          data: response.data,
-        };
-      }
-
-      return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Get servicios fijos error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
-      };
-    }
-  },
-
-  /**
-   * Verificar si un usuario existe en el sistema
+   * FIXME: error 500
    */
   verifyUser: async (
     id: string,
     userType: 'celular' | 'correo',
     username: string,
-  ): Promise<
-    ApiResponse & { exists?: boolean; data?: { post_pago?: boolean } }
-  > => {
-    try {
-      const response = await requestEtecsaApi<
-        { exists?: boolean; data?: { post_pago?: boolean } },
-        any
-      >('/usuarios/perfil_api', {
-        method: 'post',
-        data: {
-          operacion: 'verificar_usuario',
-          id,
-          tipo_usuario: userType,
-          usuario: username,
-        },
-      });
+  ): Promise<ApiResult<{ post_pago?: boolean }>> => {
+    const result = await requestEtecsaApi<{
+      exists?: boolean;
+      data?: { post_pago?: boolean };
+    }>('/usuarios/perfil_api', {
+      method: 'post',
+      data: {
+        operacion: 'verificar_usuario',
+        id,
+        tipo_usuario: userType,
+        usuario: username,
+      },
+    });
 
-      if (response.status === 226) {
-        return {
-          success: false,
-          status: 226,
-          error: 'already_registered',
-          message:
-            userType === 'celular'
-              ? 'El número móvil ya está registrado en el sistema'
-              : 'El correo electrónico ya está registrado en el sistema',
-        };
-      }
-
-      if (response.status === 204) {
-        return {
-          success: false,
-          status: 204,
-          error: 'not_found_or_inactive',
-          message:
-            userType === 'celular'
-              ? 'El número móvil no existe o no está activo'
-              : 'El correo electrónico no existe o no está activo',
-        };
-      }
-
-      if (response.status === 200) {
-        if (response.data.exists === true) {
-          return {
-            success: false,
-            status: 200,
-            error: 'too_many_attempts',
-            exists: true,
-            message: 'Se superó el límite diario de intentos',
-          };
-        }
-
-        return {
-          success: true,
-          status: 200,
-          exists: false,
-          data: response.data.data,
-          message: 'Usuario válido',
-        };
-      }
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
+    if (!result.ok) {
       return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Verificar usuario error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
+        ok: false,
+        error: result.error,
+        status: result.status,
+        details: { code: 'server_error', original: result.details },
       };
     }
+
+    const { status, data } = result;
+
+    if (status === 226) {
+      return {
+        ok: false,
+        error:
+          userType === 'celular'
+            ? 'El número móvil ya está registrado en el sistema'
+            : 'El correo electrónico ya está registrado en el sistema',
+        status: 226,
+        details: { code: 'already_registered' },
+      };
+    }
+
+    if (status === 204) {
+      return {
+        ok: false,
+        error:
+          userType === 'celular'
+            ? 'El número móvil no existe o no está activo'
+            : 'El correo electrónico no existe o no está activo',
+        status: 204,
+        details: { code: 'not_found_or_inactive' },
+      };
+    }
+
+    if (status === 200) {
+      if (data.exists === true) {
+        return {
+          ok: false,
+          error: 'Se superó el límite diario de intentos',
+          status: 200,
+          details: { code: 'too_many_attempts', exists: true },
+        };
+      }
+      return {
+        ok: true,
+        data: data.data ?? {},
+        status: 200,
+      };
+    }
+
+    return {
+      ok: false,
+      error: 'Ocurrió un error',
+      status,
+      details: { code: 'server_error' },
+    };
   },
 
   /**
-   * Generar y enviar código de activación
+   * FIXME: error 500
    */
   generateCode: async (
     userType: 'celular' | 'correo',
     username: string,
-  ): Promise<ApiResponse & { exists?: boolean }> => {
-    try {
-      const response = await requestEtecsaApi<{ exists: boolean }, any>(
-        '/usuarios/perfil_api',
-        {
-          method: 'post',
-          data: {
-            operacion: 'generar_codigo',
-            tipo_usuario: userType,
-            usuario: username,
-          },
+  ): Promise<ApiResult<{ message: string }>> => {
+    const result = await requestEtecsaApi<{ exists?: boolean }>(
+      '/usuarios/perfil_api',
+      {
+        method: 'post',
+        data: {
+          operacion: 'generar_codigo',
+          tipo_usuario: userType,
+          usuario: username,
         },
-      );
+      },
+    );
 
-      if (response.status === 200) {
-        if (response.data.exists === true) {
-          return {
-            success: false,
-            status: 200,
-            error: 'too_many_attempts',
-            exists: true,
-            message: 'Se superó la cantidad máxima de intentos (3)',
-          };
-        }
-
-        return {
-          success: true,
-          status: 200,
-          exists: false,
-          message:
-            userType === 'celular'
-              ? 'Se envió un código de activación al número móvil'
-              : 'Se envió un código de activación al correo electrónico',
-        };
-      }
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
+    if (!result.ok) {
       return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Generar código error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
+        ok: false,
+        error: result.error,
+        status: result.status,
+        details: { code: 'server_error', original: result.details },
       };
     }
+
+    const { status, data } = result;
+
+    if (status === 200) {
+      if (data.exists === true) {
+        return {
+          ok: false,
+          error: 'Se superó la cantidad máxima de intentos (3)',
+          status: 200,
+          details: { code: 'too_many_attempts' },
+        };
+      }
+      const message =
+        userType === 'celular'
+          ? 'Se envió un código de activación al número móvil'
+          : 'Se envió un código de activación al correo electrónico';
+      return {
+        ok: true,
+        data: { message },
+        status: 200,
+      };
+    }
+
+    return {
+      ok: false,
+      error: 'Ocurrió un error',
+      status,
+      details: { code: 'server_error' },
+    };
   },
 
   /**
-   * Verificar código de activación
+   * TODO: untested
    */
   verifyCode: async (
     username: string,
     code: string,
     userType: 'celular' | 'correo',
-  ): Promise<ApiResponse & { data?: { post_pago?: boolean } }> => {
-    try {
-      const response = await requestEtecsaApi<{
-        data?: { post_pago?: boolean };
-      }>('/usuarios/perfil_api', {
+  ): Promise<ApiResult<{ post_pago?: boolean }>> => {
+    const result = await requestEtecsaApi<{ data?: { post_pago?: boolean } }>(
+      '/usuarios/perfil_api',
+      {
         method: 'post',
         data: {
           operacion: 'verificar_codigo',
@@ -396,377 +215,140 @@ export const profileApi = {
           codigo: code,
           tipo_usuario: userType,
         },
-      });
+      },
+    );
 
-      if (response.status === 200) {
-        if (response.data?.data) {
-          const data =
-            typeof response.data === 'object' && 'data' in response.data
-              ? response.data.data
-              : undefined;
-
-          return {
-            success: true,
-            status: 200,
-            data,
-            message: 'Código válido, servicio agregado al perfil',
-          };
-        }
-
-        return {
-          success: false,
-          status: 200,
-          error: 'invalid_code',
-          message: 'Código inválido',
-        };
-      }
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
+    if (!result.ok) {
       return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Verificar código error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
+        ok: false,
+        error: result.error,
+        status: result.status,
+        details: { code: 'server_error', original: result.details },
       };
     }
+
+    const { status, data } = result;
+
+    if (status === 200) {
+      if (data.data) {
+        return {
+          ok: true,
+          data: data.data,
+          status: 200,
+        };
+      }
+      return {
+        ok: false,
+        error: 'Código inválido',
+        status: 200,
+        details: { code: 'invalid_code' },
+      };
+    }
+
+    return {
+      ok: false,
+      error: 'Ocurrió un error',
+      status,
+      details: { code: 'server_error' },
+    };
+  },
+
+  getProfile: (): Promise<ApiResult<ProfileData>> =>
+    profileRequest<ProfileData>({
+      method: 'get',
+    }),
+
+  logout: async (): Promise<ApiResult<{ message: string }>> => {
+    const result = await profileRequest<null>({
+      operation: 'cerrar_session',
+      method: 'put',
+    });
+
+    if (!result.ok) {
+      return result;
+    }
+
+    return {
+      ok: true,
+      data: { message: 'Sesión cerrada correctamente' },
+      status: result.status,
+    };
   },
 
   /**
-   * Obtener perfil completo del usuario
+   * TODO: untested
    */
-  getProfile: async (): Promise<ProfileResponse> => {
-    try {
-      const response = await requestEtecsaApi<ProfileData, any>(
-        '/usuarios/perfil_api',
-        {
-          method: 'get',
-        },
-      );
+  editUser: async (
+    data: EditUserRequest,
+  ): Promise<ApiResult<{ message: string }>> => {
+    const result = await requestEtecsaApi<unknown>('/usuarios/perfil_api', {
+      method: 'put',
+      data: {
+        operacion: 'editar_usuario',
+        ...data,
+      },
+    });
 
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
+    if (!result.ok) {
+      return result;
+    }
 
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
+    const { status } = result;
 
-      if (response.status === 200) {
-        return {
-          success: true,
-          status: 200,
-          data: response.data,
-        };
-      }
+    if (status === 226) {
+      const errorMessage = result.data as string;
+      let errorKey:
+        | 'carnet'
+        | 'carnet_con_movil'
+        | 'carnet_con_correo'
+        | undefined;
+      if (errorMessage === 'carnet') errorKey = 'carnet';
+      else if (errorMessage === 'carnet_con_movil')
+        errorKey = 'carnet_con_movil';
+      else if (errorMessage === 'carnet_con_correo')
+        errorKey = 'carnet_con_correo';
 
       return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Get perfil error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
+        ok: false,
+        error: 'Error de validación',
+        status: 226,
+        details: { code: 'validation_error', errorKey },
       };
     }
-  },
 
-  /**
-   * Cerrar sesión del usuario en el servidor
-   */
-  logout: async (): Promise<ApiResponse> => {
-    try {
-      const response = await requestEtecsaApi<null, any>(
-        '/usuarios/perfil_api',
-        {
-          method: 'put',
-          data: {
-            operacion: 'cerrar_session',
-          },
-        },
-      );
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
-      if (response.status === 200) {
-        return {
-          success: true,
-          status: 200,
-          message: 'Sesión cerrada correctamente',
-        };
-      }
-
+    if (status === 200) {
       return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Cerrar sesión error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
+        ok: true,
+        data: { message: 'Perfil editado correctamente' },
+        status: 200,
       };
     }
+
+    return {
+      ok: false,
+      error: 'Ocurrió un error',
+      status,
+      details: { code: 'server_error' },
+    };
   },
 
-  /**
-   * Editar perfil de usuario
-   */
-  editUser: async (data: EditUserRequest): Promise<EditUserResponse> => {
-    try {
-      const response = await requestEtecsaApi<null, EditUserRequest>(
-        '/usuarios/perfil_api',
-        {
-          method: 'put',
-          data: {
-            operacion: 'editar_usuario',
-            ...data,
-          },
-        },
-      );
+  getNautaHogar: (): Promise<ApiResult<NautaHogarResponse>> =>
+    profileRequest<NautaHogarResponse>({
+      operation: 'get_nauta_hogar',
+    }),
 
-      if (response.status === 226) {
-        const errorMessage = response.data as unknown as string;
-        let errorType: EditUserResponse['error'] = 'validation_error';
-        let errorKey: EditUserResponse['errorKey'];
+  getCashiersIds: (): Promise<ApiResult<CashiersResponse>> =>
+    profileRequest<CashiersResponse>({
+      operation: 'get_id_cajeros',
+    }),
 
-        if (errorMessage === 'carnet') {
-          errorKey = 'carnet';
-        } else if (errorMessage === 'carnet_con_movil') {
-          errorKey = 'carnet_con_movil';
-        } else if (errorMessage === 'carnet_con_correo') {
-          errorKey = 'carnet_con_correo';
-        }
+  getOwnCard: (): Promise<ApiResult<GetOwnCardResponse>> =>
+    profileRequest<GetOwnCardResponse>({
+      operation: 'get_tarjeta_propia',
+    }),
 
-        return {
-          success: false,
-          status: 226,
-          error: errorType,
-          errorKey,
-          message: 'Error de validación',
-        };
-      }
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
-      if (response.status === 200) {
-        return {
-          success: true,
-          status: 200,
-          message: 'Perfil editado correctamente',
-        };
-      }
-
-      return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Editar usuario error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
-      };
-    }
-  },
-
-  /**
-   * Obtener lista de servicios Nauta Hogar
-   */
-  getNautaHogar: async (): Promise<
-    ApiResponse & { data?: NautaHogarResponse }
-  > => {
-    try {
-      const response = await requestEtecsaApi<NautaHogarResponse, any>(
-        '/usuarios/perfil_api',
-        {
-          method: 'post',
-          data: {
-            operacion: 'get_nauta_hogar',
-          },
-        },
-      );
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
-      if (response.status === 200) {
-        return {
-          success: true,
-          status: 200,
-          data: response.data,
-        };
-      }
-
-      return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Get nauta hogar error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
-      };
-    }
-  },
-
-  /**
-   * Obtener lista de servicios móviles
-   */
-  getMobileServices: async (): Promise<
-    ApiResponse & { data?: GetMobileServicesResponse }
-  > => {
-    try {
-      const response = await requestEtecsaApi<GetMobileServicesResponse, any>(
-        '/usuarios/perfil_api',
-        {
-          method: 'post',
-          data: {
-            operacion: 'get_servicios_moviles',
-          },
-        },
-      );
-
-      if (response.status === 403) {
-        return {
-          success: false,
-          status: 403,
-          error: 'session_expired',
-          message: 'Su sesión expiró',
-        };
-      }
-
-      if (response.status === 423) {
-        return {
-          success: false,
-          status: 423,
-          error: 'service_unavailable',
-          message: 'El servicio no está disponible',
-        };
-      }
-
-      if (response.status === 200) {
-        return {
-          success: true,
-          status: 200,
-          data: response.data,
-        };
-      }
-
-      return {
-        success: false,
-        status: response.status,
-        error: 'server_error',
-        message: 'Ocurrió un error',
-      };
-    } catch (error) {
-      console.error('Get servicios moviles error:', error);
-      return {
-        success: false,
-        status: 500,
-        error: 'server_error',
-        message: 'Ocurrió un error al conectar con el servidor',
-      };
-    }
-  },
+  getLandlineServices: (): Promise<ApiResult<GetLandlineServicesResponse>> =>
+    profileRequest<GetLandlineServicesResponse>({
+      operation: 'get_servicios_fijos',
+    }),
 };

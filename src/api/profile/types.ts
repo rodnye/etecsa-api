@@ -1,5 +1,3 @@
-import { ApiResponse } from '../../core/types';
-
 export interface ProfileUser {
   id: number;
   tipo_usuario: boolean;
@@ -45,52 +43,25 @@ export interface ProfileData {
   municipios: ProfileMunicipio[];
 }
 
-export interface ProfileResponse extends ApiResponse {
-  data?: ProfileData;
-}
+export type CashiersResponse = unknown[];
+export type GetOwnCardResponse = unknown[];
+export type GetLandlineServicesResponse = unknown[];
+export type NautaHogarResponse = unknown[];
+export type GetMobileServicesResponse = {
+  id: number; // ex: 1234567,
+  service: string; // ex: "+53 12345678",
+  ci: string; // ex: "71123112345",
+  typeci: number; //
+}[];
 
-/**
- * Respuesta de get_id_cajeros
- */
-export type CashiersResponse = unknown;
-
-/**
- * Respuesta de get_tarjeta_propia
- */
-export type GetOwnCardResponse = unknown;
-
-/**
- * Respuesta de get_servicios_fijos
- */
-export type GetLandlineServicesResponse = unknown;
-
-/**
- * Respuesta de get_nauta_hogar
- */
-export type NautaHogarResponse = unknown;
-
-/**
- * Respuesta de get_servicios_moviles
- */
-export type GetMobileServicesResponse = unknown;
-
-/**
- * Beneficiario
- */
 export interface Beneficiary {
   [key: string]: unknown;
 }
 
-/**
- * Servicio
- */
 export interface Service {
   [key: string]: unknown;
 }
 
-/**
- * Solicitud de edición de usuario
- */
 export interface EditUserRequest {
   tipo_usuario?: string;
   nombre?: string;
@@ -109,14 +80,6 @@ export interface EditUserRequest {
   tipo_post_pago?: string;
 }
 
-/**
- * Respuesta de edición de usuario
- */
-export interface EditUserResponse extends ApiResponse {
-  error?:
-    | 'validation_error'
-    | 'session_expired'
-    | 'service_unavailable'
-    | 'server_error';
-  errorKey?: 'carnet' | 'carnet_con_movil' | 'carnet_con_correo';
+export interface EditUserResponseData {
+  message: string;
 }
