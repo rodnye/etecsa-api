@@ -1,58 +1,48 @@
-import { ApiResult, requestEtecsaApi } from '../../core/api';
+import { requestEtecsaApi, EtecsaApiError } from '../../core/api';
 import { MobileServiceRequestOptions } from './types';
 
 /**
- * just other request helper
+ * Función auxiliar para peticiones de servicios móviles
  */
 export const mobileServicesRequest = async <T>(
-  options: MobileServiceRequestOptions
-): Promise<ApiResult<T>> => {
-  const result = await requestEtecsaApi<T>(
-    '/servicios_moviles/servicios_moviles/servicios_moviles_api',
-    {
-      method: 'post',
-      data: {
-        operacion: options.operation,
-        ...options.data,
+  options: MobileServiceRequestOptions,
+): Promise<T> => {
+  try {
+    const data = await requestEtecsaApi<T>(
+      '/servicios_moviles/servicios_moviles/servicios_moviles_api',
+      {
+        method: 'post',
+        data: {
+          operacion: options.operation,
+          ...options.data,
+        },
       },
+    );
+    return data;
+  } catch (err) {
+    if (err instanceof EtecsaApiError) {
+      if (err.status === 403) {
+        throw new EtecsaApiError('Su sesión expiró', 403, {
+          code: 'session_expired',
+        });
+      }
+      if (err.status === 423) {
+        throw new EtecsaApiError('El servicio no está disponible', 423, {
+          code: 'service_unavailable',
+        });
+      }
+
+      if (
+        err.details &&
+        typeof err.details === 'object' &&
+        'error' in err.details
+      ) {
+        const details = err.details as Record<string, unknown>;
+        throw new EtecsaApiError(details.error as string, err.status, {
+          code: details.code || 'server_error',
+        });
+      }
     }
-  );
-
-  if (!result.ok) {
-    return result;
+    throw err;
   }
-
-  const { status, data } = result;
-
-  if (status === 403) {
-    return {
-      ok: false,
-      error: 'Su sesión expiró',
-      status: 403,
-      details: { code: 'session_expired' },
-    };
-  }
-
-  if (status === 423) {
-    return {
-      ok: false,
-      error: 'El servicio no está disponible',
-      status: 423,
-      details: { code: 'service_unavailable' },
-    };
-  }
-
-  if (status !== 200 && typeof data === 'object' && data !== null) {
-    const errorData = data as Record<string, unknown>;
-    if (typeof errorData.error === 'string') {
-      return {
-        ok: false,
-        error: errorData.error as string,
-        status,
-        details: { code: errorData.code || 'server_error' },
-      };
-    }
-  }
-
-  return result;
 };

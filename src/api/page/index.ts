@@ -1,4 +1,4 @@
-import { requestEtecsaApi, ApiResult } from '../../core/api';
+import { requestEtecsaApi } from '../../core/api';
 import type {
   LoadHomePageData,
   LoadPackages,
@@ -16,9 +16,7 @@ export interface PageDataRequest {
   securityValidationUrl?: string;
 }
 
-const postPageData = async <R = unknown>(
-  data: PageDataRequest,
-): Promise<ApiResult<R>> => {
+const postPageData = async <R = unknown>(data: PageDataRequest): Promise<R> => {
   return requestEtecsaApi<R>('/tienda_admin/datos_pagina_api', {
     method: 'post',
     data: {
@@ -28,35 +26,35 @@ const postPageData = async <R = unknown>(
 };
 
 export const pageApi = {
-  home: (): Promise<ApiResult<LoadHomePageData>> =>
+  home: (): Promise<LoadHomePageData> =>
     postPageData<LoadHomePageData>({
       operation: 'cargar_datos_pagina_principal',
     }),
 
-  packages: (): Promise<ApiResult<LoadPackages>> =>
+  packages: (): Promise<LoadPackages> =>
     postPageData<LoadPackages>({ operation: 'cargar_paquetes' }),
 
-  bags: (): Promise<ApiResult<LoadBags>> =>
+  bags: (): Promise<LoadBags> =>
     postPageData<LoadBags>({ operation: 'cargar_bolsas' }),
 
-  bag: (): Promise<ApiResult<LoadBag>> =>
+  bag: (): Promise<LoadBag> =>
     postPageData<LoadBag>({ operation: 'cargar_bolsa' }),
 
-  plans: (): Promise<ApiResult<LoadPlans>> =>
+  plans: (): Promise<LoadPlans> =>
     postPageData<LoadPlans>({ operation: 'cargar_planes' }),
 
-  specialPlans: (): Promise<ApiResult<LoadSpecialPlans>> =>
+  specialPlans: (): Promise<LoadSpecialPlans> =>
     postPageData<LoadSpecialPlans>({ operation: 'cargar_planes_especial' }),
 
-  additionalPlans: (): Promise<ApiResult<LoadAdditionalPlans>> =>
+  additionalPlans: (): Promise<LoadAdditionalPlans> =>
     postPageData<LoadAdditionalPlans>({ operation: 'cargar_planes_adicional' }),
 
-  offers: (): Promise<ApiResult<LoadOffersAndPromotions>> =>
+  offers: (): Promise<LoadOffersAndPromotions> =>
     postPageData<LoadOffersAndPromotions>({
       operation: 'cargar_ofertas_promociones',
     }),
 
-  faq: (): Promise<ApiResult<LoadFrequentQuestions>> =>
+  faq: (): Promise<LoadFrequentQuestions> =>
     postPageData<LoadFrequentQuestions>({
       operation: 'cargar_preguntas_frecuentes',
     }),

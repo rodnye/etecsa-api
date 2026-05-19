@@ -1,4 +1,4 @@
-import { requestEtecsaApi, ApiResult } from '../../core/api';
+import { requestEtecsaApi } from '../../core/api';
 import {
   MunicipalitiesResponse,
   NautaInterruptionsResponse,
@@ -7,14 +7,12 @@ import {
 } from './types';
 
 export const nomenclatorsApi = {
-  provinces: (): Promise<ApiResult<ProvincesResponse>> =>
+  provinces: (): Promise<ProvincesResponse> =>
     requestEtecsaApi<ProvincesResponse>('/nomencladores/nom_provincias_api', {
       method: 'get',
     }),
 
-  municipalities: (
-    provinceId: number,
-  ): Promise<ApiResult<MunicipalitiesResponse>> =>
+  municipalities: (provinceId: number): Promise<MunicipalitiesResponse> =>
     requestEtecsaApi<MunicipalitiesResponse>(
       '/nomencladores/nom_municipios_api',
       {
@@ -26,13 +24,13 @@ export const nomenclatorsApi = {
       },
     ),
 
-  nautaInterruptions: (): Promise<ApiResult<NautaInterruptionsResponse>> =>
+  nautaInterruptions: (): Promise<NautaInterruptionsResponse> =>
     requestEtecsaApi<NautaInterruptionsResponse>(
       '/nomencladores/nom_interr_nauta_api',
       { method: 'get' },
     ),
 
-  stbInterruptions: (): Promise<ApiResult<StbInterruption>> =>
+  stbInterruptions: (): Promise<StbInterruption> =>
     requestEtecsaApi<StbInterruption>('/nomencladores/nom_interr_stb_api', {
       method: 'get',
     }),

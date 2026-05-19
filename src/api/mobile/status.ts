@@ -1,14 +1,13 @@
-import { ApiResult } from "../../core/api";
-import { GetServiceStatusRequest, GetServiceStatusResponse } from "./types";
-import { mobileServicesRequest } from "./utils";
+import { EtecsaApiError } from '../../core/api';
+import { GetServiceStatusRequest, GetServiceStatusResponse } from './types';
+import { mobileServicesRequest } from './utils';
 
 /**
- * Obtener estado del servicio mobil
- * Los datos necesarios se pueden obtener del perfil
+ * Obtener estado del servicio móvil.
  */
 export const getMobileServiceStatus = (
   request: GetServiceStatusRequest,
-): Promise<ApiResult<GetServiceStatusResponse>> =>
+): Promise<GetServiceStatusResponse> =>
   mobileServicesRequest<GetServiceStatusResponse>({
     operation: 'get_estado_servicio',
     data: {

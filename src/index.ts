@@ -17,6 +17,6 @@ export const etecsa = {
 export * from './api/auth/types';
 export * from './api/mobile/types';
 export * from './api/profile/types';
-export * from './core/api';
+export { EtecsaApiError } from './core/api';
 
 export default etecsa;
