@@ -1,13 +1,51 @@
 {
-  "name": "etecsa-api",
+  "name": "etecsa-client",
   "version": "1.0.0",
-  "description": "",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Unofficial ETECSA API client",
+  "keywords": [
+    "etecsa",
+    "nauta",
+    "cuba",
+    "api",
+    "sdk",
+    "typescript",
+    "nodejs"
+  ],
+  "homepage": "https://github.com/rodnye/etecsa-client",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodnye/etecsa-client.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rodnye/etecsa-client/issues"
+  },
+  "license": "MIT",
+  "author": "Rodny Estrada<rrodnyestrada1@gmail.com>",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "raw"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run clean && pnpm run build",
+    "test": "echo \"No tests yet\""
+  },
   "packageManager": "pnpm@10.33.2",
   "dependencies": {
     "axios": "^1.16.1",
@@ -20,6 +58,7 @@
     "@types/jsdom": "^28.0.3",
     "@types/node": "^25.7.0",
     "@types/tough-cookie": "4.0.5",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
