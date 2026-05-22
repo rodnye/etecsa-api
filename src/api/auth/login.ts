@@ -1,7 +1,7 @@
 import { requestEtecsaApi, EtecsaApiError } from '../../core/api';
 import { ETECSA } from '../../core/methods';
 import { AuthCredentials, LoginSuccessData } from './types';
-import { detectUserFormat, validateUserFormat } from './utils';
+import { detectUserFormat, sanitizeUserFormat} from './utils';
 
 /**
  * Iniciar sesión con credenciales de ETECSA
@@ -9,20 +9,14 @@ import { detectUserFormat, validateUserFormat } from './utils';
 export const login = async (
   credentials: AuthCredentials,
 ): Promise<LoginSuccessData> => {
-  if (
-    !validateUserFormat(credentials.user, detectUserFormat(credentials.user))
-  ) {
-    throw new EtecsaApiError('Formato de usuario incorrecto', 400, {
-      code: 'invalid_format',
-    });
-  }
+  const sanitizedUser = sanitizeUserFormat(credentials.user);
 
   try {
     await requestEtecsaApi<null>('/autenticarse/autenticarse_api', {
       method: 'put',
       data: {
         operacion: 'autenticar',
-        usuario: credentials.user,
+        usuario: sanitizedUser,
         contrasenna: credentials.pass,
       },
     });
@@ -66,11 +60,7 @@ export const checkUserExistsAuthApi = async (
   user: string,
 ): Promise<{ exists: false } | { exists: true; attemptsExceeded: true }> => {
   const userFormat = detectUserFormat(user);
-  if (!validateUserFormat(user, userFormat)) {
-    throw new EtecsaApiError('Formato de usuario incorrecto', 400, {
-      code: 'invalid_format',
-    });
-  }
+  user = sanitizeUserFormat(user);
 
   try {
     const data = await requestEtecsaApi<{ existe: boolean }>(

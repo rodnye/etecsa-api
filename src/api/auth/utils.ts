@@ -1,20 +1,30 @@
+import { EtecsaApiError } from '../../core/api';
 import { UserFormat } from './types';
 
 export const PHONE_PATTERN = /^\+53 \d{8}$/;
-export const NAUTA_PATTERN =
-  /^[A-Za-z0-9ñÑ.~¿?!#/$%^&*()_+=|¡-]{2,50}@nauta\.cu$/;
+export const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 /**
  * Valida el formato del usuario según el tipo
  */
-export const validateUserFormat = (user: string, type: UserFormat): boolean => {
-  if (type === 'email') return NAUTA_PATTERN.test(user);
-  else return PHONE_PATTERN.test(user);
+export const sanitizeUserFormat = (user: string): string => {
+  user = user.trim();
+  const type = detectUserFormat(user);
+  if (type === 'email') {
+    if (!user.endsWith('@nauta.cu'))
+      throw new Error('El email debe de ser @nauta.cu');
+    return user;
+  }
+
+  let phone = '+53 ' + user.replace(/^\+{0,1}53 {0,1}/, '');
+  if (!PHONE_PATTERN.test(phone))
+    throw new Error('Número telefónico no válido');
+  return phone;
 };
 
 /**
  * Detecta el tipo de usuario basado en el formato
  */
 export const detectUserFormat = (user: string): UserFormat => {
-  return PHONE_PATTERN.test(user) ? 'phone' : 'email';
+  return EMAIL_PATTERN.test(user) ? 'email' : 'phone';
 };

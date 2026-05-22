@@ -1,16 +1,12 @@
 import { requestEtecsaApi, EtecsaApiError } from '../../core/api';
-import { detectUserFormat, validateUserFormat } from './utils';
+import { detectUserFormat, sanitizeUserFormat } from './utils';
 
 /**
  * Generar y enviar código de verificación al usuario.
  */
 export const sendCode = async (user: string): Promise<{ message: string }> => {
   const userFormat = detectUserFormat(user);
-  if (!validateUserFormat(user, userFormat)) {
-    throw new EtecsaApiError('Formato de usuario incorrecto', 400, {
-      code: 'invalid_format',
-    });
-  }
+  user = sanitizeUserFormat(user);
 
   try {
     const data = await requestEtecsaApi<{ existe: boolean }>(
